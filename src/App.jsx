@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,13 +25,10 @@ import { OperationProvider } from '@/context/OperationContext.jsx';
 import { useToast } from "@/components/ui/use-toast";
 import { debug } from '@/lib/logger.js';
 
-
+// Componente que muestra un indicador de carga global
 const GlobalLoadingIndicator = () => {
     const { loading: authIsLoading, initialAuthChecked } = useAuth();
-    debug.log(`[GlobalLoadingIndicator] Render. authIsLoading: ${authIsLoading}, initialAuthChecked: ${initialAuthChecked}`);
-
     if (authIsLoading || !initialAuthChecked) {
-        debug.log('[GlobalLoadingIndicator] Showing loading indicator.');
         return (
             <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 z-[200]">
                 <div className="p-4 bg-slate-800/80 rounded-lg shadow-2xl flex flex-col items-center">
@@ -45,22 +41,18 @@ const GlobalLoadingIndicator = () => {
             </div>
         );
     }
-    debug.log('[GlobalLoadingIndicator] Not showing loading indicator.');
     return null;
 };
 
+// Componente que maneja redirecciones de emergencia en caso de problemas críticos de carga
 const EmergencyFallback = () => {
   const { initialAuthChecked, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  debug.log(`[EmergencyFallback] Render/Effect check. initialAuthChecked: ${initialAuthChecked}, loading: ${loading}`);
 
   useEffect(() => {
-    debug.log(`[EmergencyFallback useEffect] Setting up timeout. initialAuthChecked: ${initialAuthChecked}, loading: ${loading}`);
     const timeoutId = setTimeout(() => {
-      debug.log(`[EmergencyFallback setTimeout] Timeout triggered. initialAuthChecked: ${initialAuthChecked}, loading: ${loading}`);
       if (!initialAuthChecked && !loading) {
-        debug.warn("[EmergencyFallback setTimeout] Condition met: !initialAuthChecked && !loading. Navigating to login.");
         toast({
           title: "Problema de Carga",
           description: "La aplicación no pudo iniciar correctamente. Serás redirigido al inicio de sesión.",
@@ -68,35 +60,26 @@ const EmergencyFallback = () => {
           duration: 7000,
         });
         navigate('/login', { replace: true });
-      } else {
-        debug.log("[EmergencyFallback setTimeout] Condition NOT met. No navigation.");
       }
-    }, 10000); 
+    }, 10000);
 
-    return () => {
-      debug.log("[EmergencyFallback useEffect] Clearing timeout.");
-      clearTimeout(timeoutId);
-    };
+    return () => clearTimeout(timeoutId);
   }, [initialAuthChecked, loading, navigate, toast]);
 
   return null;
 };
 
-
+// Componente principal de contenido de la aplicación
 function AppContent() {
   const { currentUser, loading, initialAuthChecked } = useAuth(); 
-  debug.log(`[AppContent] Auth state =>`, { currentUser, loading, initialAuthChecked });
-  debug.log(`[AppContent] Render. initialAuthChecked: ${initialAuthChecked}, loading: ${loading}`);
-
 
   useEffect(() => {
     const testSupabaseConnection = async () => {
-      debug.log('[AppContent Test Supabase] Attempting to fetch from profiles...');
       const { data, error } = await supabase.from('profiles').select('*').limit(1);
       if (error) {
-        debug.error("[AppContent Test Supabase] Error testing Supabase connection:", error);
+        console.error("[AppContent Test Supabase] Error:", error);
       } else {
-        debug.log("[AppContent Test Supabase] Supabase connection OK, got data:", data);
+        console.log("[AppContent Test Supabase] Data:", data);
       }
     };
     if (initialAuthChecked) { 
@@ -106,11 +89,9 @@ function AppContent() {
 
 
   if (!initialAuthChecked) {
-    debug.log('[AppContent] initialAuthChecked is false. Returning GlobalLoadingIndicator.');
     return <GlobalLoadingIndicator />; 
   }
   
-  debug.log('[AppContent] initialAuthChecked is true. Rendering main content.');
   return (
     <>
       <EmergencyFallback />
@@ -151,9 +132,8 @@ function AppContent() {
   );
 }
 
-
+// Componente de entrada principal de la aplicación
 function App() {
-  debug.log('[App] Rendering App component.');
   return (
     <Router>
       <AuthProvider>

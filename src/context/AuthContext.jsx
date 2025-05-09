@@ -84,9 +84,14 @@ const AuthProvider = ({ children }) => {
       }
     });
 
+    // Manejar el caso en el que `subscription` no sea válido
     return () => {
       debug.log('[AuthProvider useEffect] Cleaning up...');
-      subscription?.unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === 'function') {
+        subscription.unsubscribe();
+      } else {
+        debug.warn('[AuthProvider useEffect] No valid subscription to unsubscribe.');
+      }
     };
   }, [getSessionAndProfile]);
 
