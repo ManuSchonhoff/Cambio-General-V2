@@ -1,0 +1,51 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* Light Grayish Blue */
+    --foreground: 224 71.4% 4.1%; /* Dark Blue */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 224 71.4% 4.1%; /* Dark Blue */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 224 71.4% 4.1%; /* Dark Blue */
+    
+    /* Light Blue Theme */
+    --primary: 205 90% 50%; /* Brighter Sky Blue */
+    --primary-foreground: 0 0% 100%; /* White */
+    
+    --secondary: 200 80% 92%; /* Very Light Blue */
+    --secondary-foreground: 205 90% 30%; /* Darker Sky Blue */
+    
+    --muted: 210 40% 92%; /* Light Grayish Blue - Muted */
+    --muted-foreground: 210 30% 45%; /* Medium Grayish Blue */
+    
+    --accent: 195 85% 88%; /* Pale Sky Blue - Accent */
+    --accent-foreground: 205 90% 25%; /* Dark Sky Blue */
+    
+    --destructive: 0 72% 51%; /* Brighter Red */
+    --destructive-foreground: 0 0% 100%; /* White */
+    
+    --border: 200 50% 85%; /* Light Blue-Gray Border */
+    --input: 200 50% 88%; /* Light Blue-Gray Input */
+    --ring: 205 90% 60%; /* Sky Blue for Ring */
+    
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.gradient-blue-bg {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(215, 85%, 60%) 100%);
+}
