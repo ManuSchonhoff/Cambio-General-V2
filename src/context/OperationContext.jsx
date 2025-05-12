@@ -8,7 +8,7 @@ const OperationContext = createContext();
 export const useOperations = () => useContext(OperationContext);
 
 const ADMIN_LOG_KEY = 'accountingAdminActivityLog_v1';
-const OPERATIONS_KEY = 'accountingOperations_v2';
+const OPERATIONS_KEY = 'accountingOperations_v3'; // Incremented version for new structure
 const CLIENTS_KEY = 'accountingClients_v2';
 const CASH_BOXES_KEY = 'accountingCashBoxes_v1';
 const EXPENSE_CATEGORIES_KEY = 'accountingExpenseCategories_v1';
@@ -108,6 +108,7 @@ export const OperationProvider = ({ children }) => {
       remainingAmountIn: operationData.amountIn || 0,
       remainingAmountOut: operationData.amountOut || 0,
       executions: [],
+      additionalData: operationData.additionalData || null, // Store cable details
       ...operationData,
     };
     if (!newOperation.type) throw new Error("Tipo de operación requerido.");
@@ -179,6 +180,7 @@ export const OperationProvider = ({ children }) => {
             const newOpData = { 
                 ...op, 
                 ...updatedData, 
+                additionalData: updatedData.additionalData !== undefined ? updatedData.additionalData : op.additionalData,
                 updatedAt: new Date().toISOString(), 
                 updatedBy: currentUser.id 
             };

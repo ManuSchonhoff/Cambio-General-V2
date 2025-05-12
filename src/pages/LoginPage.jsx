@@ -11,176 +11,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.jsx";
 import { useToast } from "@/components/ui/use-toast";
 
-const LoginTabContent = ({ onLogin, isSubmitting, authLoading }) => {
+const LoginPage = () => {
+  const navigate = useNavigate();
+  const { login, createUserAccount, currentUser, loading: authLoading } = useAuth(); 
+  const { toast } = useToast();
+
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onLogin(loginEmail, loginPassword);
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-      <Card className="bg-slate-800/70 border-slate-700 shadow-2xl backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-sky-400">Bienvenido de Nuevo</CardTitle>
-          <CardDescription className="text-slate-400">Ingresa tus credenciales para acceder a tu cuenta.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="login-email" className="text-slate-300">Correo Electrónico</Label>
-              <Input 
-                id="login-email" 
-                type="email" 
-                placeholder="tu@email.com" 
-                value={loginEmail} 
-                onChange={(e) => setLoginEmail(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="login-password" className="text-slate-300">Contraseña</Label>
-              <Input 
-                id="login-password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={loginPassword} 
-                onChange={(e) => setLoginPassword(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-            <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white" disabled={isSubmitting || authLoading}>
-              {isSubmitting ? 'Ingresando...' : 'Iniciar Sesión'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
-
-const SignupTabContent = ({ onSignup, isSubmitting, authLoading }) => {
+  
   const [signupEmail, setSignupEmail] = useState('');
   const [signupUsername, setSignupUsername] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
-  const { toast } = useToast();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (signupPassword !== signupConfirmPassword) {
-      toast({ title: "Error de Registro", description: "Las contraseñas no coinciden.", variant: "destructive", icon: <AlertCircle className="h-5 w-5" /> });
-      return;
-    }
-    onSignup(signupEmail, signupPassword, signupUsername).then(() => {
-        setSignupEmail('');
-        setSignupUsername('');
-        setSignupPassword('');
-        setSignupConfirmPassword('');
-    }).catch(() => {});
-  };
-
-  return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-      <Card className="bg-slate-800/70 border-slate-700 shadow-2xl backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-sky-400">Crear Nueva Cuenta</CardTitle>
-          <CardDescription className="text-slate-400">Completa el formulario para unirte.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="signup-email" className="text-slate-300">Correo Electrónico</Label>
-              <Input 
-                id="signup-email" 
-                type="email" 
-                placeholder="tu@email.com" 
-                value={signupEmail} 
-                onChange={(e) => setSignupEmail(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-             <div className="space-y-1.5">
-              <Label htmlFor="signup-username" className="text-slate-300">Nombre de Usuario</Label>
-              <Input 
-                id="signup-username" 
-                type="text" 
-                placeholder="TuNombreDeUsuario" 
-                value={signupUsername} 
-                onChange={(e) => setSignupUsername(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="signup-password" className="text-slate-300">Contraseña</Label>
-              <Input 
-                id="signup-password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={signupPassword} 
-                onChange={(e) => setSignupPassword(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="signup-confirm-password" className="text-slate-300">Confirmar Contraseña</Label>
-              <Input 
-                id="signup-confirm-password" 
-                type="password" 
-                placeholder="••••••••" 
-                value={signupConfirmPassword} 
-                onChange={(e) => setSignupConfirmPassword(e.target.value)} 
-                required 
-                className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
-                disabled={isSubmitting}
-              />
-            </div>
-            <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white" disabled={isSubmitting || authLoading}>
-              {isSubmitting ? 'Registrando...' : 'Crear Cuenta'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter>
-          <p className="text-xs text-slate-500 text-center w-full">
-            Al registrarte, aceptas nuestros Términos y Política de Privacidad (ficticios).
-            Recibirás un correo para confirmar tu cuenta.
-          </p>
-        </CardFooter>
-      </Card>
-    </motion.div>
-  );
-};
-
-const LoginPage = () => {
-  const navigate = useNavigate();
-  const { login, createUserAccount, currentUser, loading: authLoading, initialAuthChecked } = useAuth(); 
-  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false); 
 
   useEffect(() => {
-    if (currentUser && initialAuthChecked && !authLoading) {
+    if (currentUser && !authLoading) {
       navigate('/', { replace: true });
     }
-  }, [currentUser, initialAuthChecked, authLoading, navigate]);
+  }, [currentUser, authLoading, navigate]);
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login(email, password);
+      await login(loginEmail, loginPassword);
       toast({ title: "Inicio de Sesión Exitoso", description: `Bienvenido de nuevo.` });
-      // La navegación se maneja por el useEffect
     } catch (error) {
       toast({
         title: "Error al Iniciar Sesión",
@@ -193,16 +50,24 @@ const LoginPage = () => {
     }
   };
 
-  const handleSignup = async (email, password, username) => {
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (signupPassword !== signupConfirmPassword) {
+      toast({ title: "Error de Registro", description: "Las contraseñas no coinciden.", variant: "destructive", icon: <AlertCircle className="h-5 w-5" /> });
+      return;
+    }
     setIsSubmitting(true);
     try {
-      await createUserAccount(email, password, username);
+      await createUserAccount(signupEmail, signupPassword, signupUsername);
       toast({ 
         title: "Registro Exitoso", 
         description: "Por favor, revisa tu correo electrónico para confirmar tu cuenta antes de iniciar sesión.",
         duration: 7000 
       });
-      // Resetear los campos de signup se maneja ahora dentro de SignupTabContent
+      setSignupEmail('');
+      setSignupUsername('');
+      setSignupPassword('');
+      setSignupConfirmPassword('');
     } catch (error) {
       toast({
         title: "Error de Registro",
@@ -210,17 +75,16 @@ const LoginPage = () => {
         variant: "destructive",
         icon: <AlertCircle className="h-5 w-5" />
       });
-      throw error; // Propagar error para que SignupTabContent no limpie campos si falla
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (authLoading && !initialAuthChecked && !currentUser) { // Mostrar carga solo si realmente estamos esperando la autenticación inicial
+  if (authLoading && !currentUser) {
      return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-4">
             <Activity className="h-16 w-16 text-sky-400 animate-pulse" />
-            <p className="text-slate-300 mt-4">Autenticando...</p>
+            <p className="text-slate-300 mt-4">Cargando...</p>
         </div>
     );
   }
@@ -264,11 +128,123 @@ const LoginPage = () => {
         </TabsList>
         
         <TabsContent value="login">
-          <LoginTabContent onLogin={handleLogin} isSubmitting={isSubmitting} authLoading={authLoading} />
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+            <Card className="bg-slate-800/70 border-slate-700 shadow-2xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-sky-400">Bienvenido de Nuevo</CardTitle>
+                <CardDescription className="text-slate-400">Ingresa tus credenciales para acceder a tu cuenta.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-email" className="text-slate-300">Correo Electrónico</Label>
+                    <Input 
+                      id="login-email" 
+                      type="email" 
+                      placeholder="tu@email.com" 
+                      value={loginEmail} 
+                      onChange={(e) => setLoginEmail(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="login-password" className="text-slate-300">Contraseña</Label>
+                    <Input 
+                      id="login-password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={loginPassword} 
+                      onChange={(e) => setLoginPassword(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white" disabled={isSubmitting || authLoading}>
+                    {isSubmitting ? 'Ingresando...' : 'Iniciar Sesión'}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
         </TabsContent>
 
         <TabsContent value="signup">
-          <SignupTabContent onSignup={handleSignup} isSubmitting={isSubmitting} authLoading={authLoading} />
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+            <Card className="bg-slate-800/70 border-slate-700 shadow-2xl backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl text-sky-400">Crear Nueva Cuenta</CardTitle>
+                <CardDescription className="text-slate-400">Completa el formulario para unirte.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSignup} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-email" className="text-slate-300">Correo Electrónico</Label>
+                    <Input 
+                      id="signup-email" 
+                      type="email" 
+                      placeholder="tu@email.com" 
+                      value={signupEmail} 
+                      onChange={(e) => setSignupEmail(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                   <div className="space-y-1.5">
+                    <Label htmlFor="signup-username" className="text-slate-300">Nombre de Usuario</Label>
+                    <Input 
+                      id="signup-username" 
+                      type="text" 
+                      placeholder="TuNombreDeUsuario" 
+                      value={signupUsername} 
+                      onChange={(e) => setSignupUsername(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-password" className="text-slate-300">Contraseña</Label>
+                    <Input 
+                      id="signup-password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={signupPassword} 
+                      onChange={(e) => setSignupPassword(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="signup-confirm-password" className="text-slate-300">Confirmar Contraseña</Label>
+                    <Input 
+                      id="signup-confirm-password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={signupConfirmPassword} 
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)} 
+                      required 
+                      className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-500 focus:border-sky-500"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-500 text-white" disabled={isSubmitting || authLoading}>
+                    {isSubmitting ? 'Registrando...' : 'Crear Cuenta'}
+                  </Button>
+                </form>
+              </CardContent>
+              <CardFooter>
+                <p className="text-xs text-slate-500 text-center w-full">
+                  Al registrarte, aceptas nuestros Términos y Política de Privacidad (ficticios).
+                  Recibirás un correo para confirmar tu cuenta.
+                </p>
+              </CardFooter>
+            </Card>
+          </motion.div>
         </TabsContent>
       </Tabs>
 

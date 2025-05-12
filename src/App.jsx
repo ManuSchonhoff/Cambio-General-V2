@@ -1,3 +1,4 @@
+
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,13 +20,13 @@ import ClientsPage from '@/pages/ClientsPage.jsx';
 import UserManagementPage from '@/pages/UserManagementPage.jsx';
 import PendingOperationsPage from '@/pages/PendingOperationsPage.jsx';
 import AdminLogPage from '@/pages/AdminLogPage.jsx'; 
+import FutureCashPage from '@/pages/FutureCashPage.jsx';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 import { OperationProvider } from '@/context/OperationContext.jsx';
 import { useToast } from "@/components/ui/use-toast";
 import { debug } from '@/lib/logger.js';
 
-// Componente que muestra un indicador de carga global
 const GlobalLoadingIndicator = () => {
     const { loading: authIsLoading, initialAuthChecked } = useAuth();
     if (authIsLoading || !initialAuthChecked) {
@@ -44,7 +45,6 @@ const GlobalLoadingIndicator = () => {
     return null;
 };
 
-// Componente que maneja redirecciones de emergencia en caso de problemas críticos de carga
 const EmergencyFallback = () => {
   const { initialAuthChecked, loading } = useAuth();
   const navigate = useNavigate();
@@ -69,7 +69,6 @@ const EmergencyFallback = () => {
   return null;
 };
 
-// Componente principal de contenido de la aplicación
 function AppContent() {
   const { currentUser, loading, initialAuthChecked } = useAuth(); 
 
@@ -108,6 +107,7 @@ function AppContent() {
                 <Route path="pending-operations" element={<PendingOperationsPage />} />
                 <Route path="transactions" element={<TransactionsPage />} />
                 <Route path="cash" element={<CashPage />} />
+                <Route path="future-cash" element={<FutureCashPage />} />
                 <Route path="expenses" element={<ExpensesPage />} />
                 <Route path="society" element={<SocietyPage />} />
                 <Route path="clients" element={<ClientsPage />} />
@@ -132,7 +132,6 @@ function AppContent() {
   );
 }
 
-// Componente de entrada principal de la aplicación
 function App() {
   return (
     <Router>

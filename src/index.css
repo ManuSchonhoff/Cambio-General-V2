@@ -34,6 +34,34 @@
     
     --radius: 0.5rem;
   }
+
+  .dark {
+    --background: 224 71.4% 4.1%; /* Dark Blue */
+    --foreground: 210 40% 98%; /* Light Grayish Blue */
+    --card: 222 70% 8%; /* Darker Blue */
+    --card-foreground: 210 40% 98%; /* Light Grayish Blue */
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 40% 98%;
+    
+    --primary: 205 80% 55%; /* Vivid Sky Blue for Dark Mode */
+    --primary-foreground: 224 71.4% 4.1%; /* Dark Blue */
+    
+    --secondary: 215 40% 15%; /* Dark Slate Blue */
+    --secondary-foreground: 210 40% 90%; /* Lighter Grayish Blue */
+    
+    --muted: 215 30% 12%; /* Very Dark Slate Blue */
+    --muted-foreground: 210 30% 60%; /* Medium Grayish Blue */
+    
+    --accent: 200 70% 25%; /* Deep Sky Blue Accent */
+    --accent-foreground: 210 40% 98%; /* Light Grayish Blue */
+    
+    --destructive: 0 60% 45%; /* Darker Red */
+    --destructive-foreground: 0 0% 98%; /* Off-White */
+    
+    --border: 215 30% 20%; /* Dark Blue-Gray Border */
+    --input: 215 30% 22%; /* Dark Blue-Gray Input */
+    --ring: 205 80% 50%; /* Vivid Sky Blue for Ring */
+  }
 }
 
 @layer base {

@@ -3,25 +3,51 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { formatNumberForDisplay, parseFormattedNumber } from '@/lib/utils';
 
-const FormattedInput = React.forwardRef(({ value: propValue, onChange, onBlur, name, ...props }, ref) => {
+const FormattedInput = React.forwardRef(({ value: propValue, onChange, onBlur, name, allowNegative = false, ...props }, ref) => {
   const [displayValue, setDisplayValue] = useState('');
-  const internalRef = useRef(null); // Use internal ref for cursor management
+  const internalRef = useRef(null);
   const inputRef = ref || internalRef;
 
   useEffect(() => {
-    const formatted = formatNumberForDisplay(propValue);
-    if (document.activeElement !== inputRef.current || propValue === null) {
+    const formatted = formatNumberForDisplay(propValue, allowNegative);
+    if (document.activeElement !== inputRef.current || propValue === null || propValue === undefined) {
       setDisplayValue(formatted);
     }
-  }, [propValue, inputRef]);
+  }, [propValue, inputRef, allowNegative]);
 
   const handleChange = (e) => {
-    const inputValue = e.target.value;
-    const originalCursorPosition = e.target.selectionStart;
+    let inputValue = e.target.value;
     
-    setDisplayValue(inputValue);
+    // Allow only numbers, one decimal separator (comma or period), and optionally a minus sign at the beginning
+    let regex;
+    if (allowNegative) {
+      regex = /^-?[\d,.]*$/;
+    } else {
+      regex = /^[\d,.]*$/;
+    }
 
-    const parsed = parseFormattedNumber(inputValue);
+    if (!regex.test(inputValue)) {
+      // If invalid char is typed, revert to previous valid displayValue or formatted propValue
+      setDisplayValue(formatNumberForDisplay(propValue, allowNegative));
+      return;
+    }
+    
+    // If only "-" is typed and negatives are allowed, keep it
+    if (allowNegative && inputValue === "-") {
+      setDisplayValue(inputValue);
+    } else {
+       // Prevent multiple decimal separators or leading zeros for non-decimal part
+      const parts = inputValue.replace(',', '.').split('.');
+      if (parts.length > 2) { // more than one decimal separator
+        setDisplayValue(formatNumberForDisplay(propValue, allowNegative));
+        return;
+      }
+      // No specific handling for leading zeros here, parseFormattedNumber should handle it
+      setDisplayValue(inputValue);
+    }
+
+
+    const parsed = parseFormattedNumber(inputValue, allowNegative);
     
     if (onChange) {
       onChange({
@@ -31,32 +57,14 @@ const FormattedInput = React.forwardRef(({ value: propValue, onChange, onBlur, n
         },
       });
     }
-
-    // Attempt to maintain cursor position
-    // This is tricky with formatting and might need more advanced handling for all cases
-    requestAnimationFrame(() => {
-      if (inputRef.current && document.activeElement === inputRef.current) {
-        // Heuristic: if the number of non-digit characters changed, adjust cursor
-        const currentNonDigits = (displayValue.match(/[^\d]/g) || []).length;
-        const prevNonDigits = (inputValue.match(/[^\d]/g) || []).length;
-        const diffNonDigits = currentNonDigits - prevNonDigits;
-        const newCursorPosition = originalCursorPosition + diffNonDigits;
-        
-        // Ensure cursor is within bounds
-        const boundedCursorPosition = Math.max(0, Math.min(newCursorPosition, inputRef.current.value.length));
-         // Only set if it's a number input that's being actively typed in
-        if (props.type !== 'text' && !isNaN(parseFloat(inputValue.replace(',','.')))) {
-             // inputRef.current.setSelectionRange(boundedCursorPosition, boundedCursorPosition);
-        }
-      }
-    });
   };
 
   const handleBlurEvent = (e) => {
-    const parsed = parseFormattedNumber(displayValue);
-    setDisplayValue(formatNumberForDisplay(parsed)); 
+    const parsed = parseFormattedNumber(displayValue, allowNegative);
+    setDisplayValue(formatNumberForDisplay(parsed, allowNegative)); 
     if (onBlur) {
-      onBlur(e); 
+      const eventWithValue = { ...e, target: { ...e.target, name, value: parsed } };
+      onBlur(eventWithValue);
     }
   };
 
@@ -69,6 +77,7 @@ const FormattedInput = React.forwardRef(({ value: propValue, onChange, onBlur, n
       onChange={handleChange}
       onBlur={handleBlurEvent}
       autoComplete="off"
+      type="text" 
     />
   );
 });

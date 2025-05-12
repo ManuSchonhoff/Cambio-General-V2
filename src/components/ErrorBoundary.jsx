@@ -1,6 +1,6 @@
+
 import React from 'react';
 
-// Crear la clase ErrorBoundary
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -8,12 +8,10 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Actualiza el estado para mostrar la UI de fallback
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Puedes registrar el error en un servicio externo aquí
     console.error("Error capturado por ErrorBoundary:", error, errorInfo);
   }
 
@@ -26,5 +24,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Exportar ErrorBoundary como default
 export default ErrorBoundary;

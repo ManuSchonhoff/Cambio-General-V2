@@ -11,20 +11,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ListFilter, Search, Edit3, Trash2, FileText, ArrowUpDown, Eye, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import { ListFilter, Search, Edit3, Trash2, FileText, ArrowUpDown, Eye, CheckCircle, AlertTriangle, Clock, User as UserIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import FormattedInput from '@/components/FormattedInput.jsx';
 import { useToast } from "@/components/ui/use-toast.js";
 import { cn } from "@/lib/utils";
+import SearchableSelect from '@/components/SearchableSelect.jsx';
 
 
 const operationTypesForFilter = [
   { value: "all", label: "Todos los Tipos" },
-  { value: "compra_divisa", label: "Compra Divisa" },
-  { value: "venta_divisa", label: "Venta Divisa" },
+  { value: "compra_divisa_ars", label: "Compra Divisa (con ARS)" },
+  { value: "venta_divisa_ars", label: "Venta Divisa (a ARS)" },
+  { value: "compra_divisa_usd", label: "Compra Otra Divisa (con USD)" },
+  { value: "venta_divisa_usd", label: "Venta Otra Divisa (a USD)" },
+  { value: "compra_usdt_ars", label: "Compra USDT (con ARS)" },
+  { value: "venta_usdt_ars", label: "Venta USDT (a ARS)" },
+  { value: "compra_usdt_usd", label: "Compra USDT (con USD)" },
+  { value: "venta_usdt_usd", label: "Venta USDT (a USD)" },
+  { value: "envio_cable_usd", label: "Envío Cable (USD)" },
+  { value: "recepcion_cable_usd", label: "Recepción Cable (USD)" },
   { value: "caja_chica", label: "Movimiento Caja Chica" },
   { value: "sueldos", label: "Sueldos" },
+  { value: "alquileres_pagados", label: "Alquileres Pagados" },
   { value: "gastos_varios", label: "Gastos Varios" },
   { value: "costos_fijos", label: "Costos Fijos" },
   { value: "prestamo_otorgado", label: "Préstamo Otorgado" },
@@ -43,20 +53,25 @@ const operationTypesForFilter = [
   { value: "otro_egreso", label: "Otro Egreso" },
   { value: "asiento_base", label: "Asiento Base / Constitución" },
   { value: "ajuste_caja", label: "Ajuste de Caja"},
+  { value: "ajuste_saldo_caja", label: "Ajuste Saldo Caja (Manual)"},
 ];
 
 const ARS_CURRENCY = "ARS";
 const foreignCurrencies = ["USD", "EUR", "USDT", "BRL", "GBP"];
 const allCurrencies = [ARS_CURRENCY, ...foreignCurrencies];
+const NO_OWNER_VALUE = "_ninguno_";
 
 
-const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
+const EditOperationDialog = ({ open, onOpenChange, operation, onSave, userProfiles }) => {
   const [editedOperation, setEditedOperation] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
     if (operation) {
-      setEditedOperation({ ...operation });
+      setEditedOperation({ 
+        ...operation,
+        ownerId: operation.ownerId || NO_OWNER_VALUE 
+      });
     }
   }, [operation]);
 
@@ -80,12 +95,14 @@ const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
       amountIn: parsedAmountIn,
       amountOut: parsedAmountOut,
       rate: parsedRate,
+      ownerId: editedOperation.ownerId === NO_OWNER_VALUE ? null : editedOperation.ownerId,
     });
     onOpenChange(false);
     toast({ title: "Operación Actualizada", description: "Los cambios en la operación han sido guardados." });
   };
 
-  const isTransactionType = ["compra_divisa", "venta_divisa"].includes(editedOperation.type);
+  const isTransactionType = ["compra_divisa_ars", "venta_divisa_ars", "compra_divisa_usd", "venta_divisa_usd"].includes(editedOperation.type);
+  const isPercentageFeeType = editedOperation.rateType === 'percentage_fee';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,7 +123,7 @@ const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
           
           <div className="space-y-1">
             <Label htmlFor="edit-amountIn">Monto Entrada</Label>
-            <FormattedInput id="edit-amountIn" value={editedOperation.amountIn} onChange={(e) => handleFormattedInputChange('amountIn', e)} />
+            <FormattedInput id="edit-amountIn" value={editedOperation.amountIn} onChange={(e) => handleFormattedInputChange('amountIn', e)} allowNegative={false}/>
           </div>
           <div>
             <Label htmlFor="edit-currencyIn">Moneda Entrada</Label>
@@ -118,7 +135,7 @@ const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
 
           <div className="space-y-1">
             <Label htmlFor="edit-amountOut">Monto Salida</Label>
-            <FormattedInput id="edit-amountOut" value={editedOperation.amountOut} onChange={(e) => handleFormattedInputChange('amountOut', e)} />
+            <FormattedInput id="edit-amountOut" value={editedOperation.amountOut} onChange={(e) => handleFormattedInputChange('amountOut', e)} allowNegative={false}/>
           </div>
           <div>
             <Label htmlFor="edit-currencyOut">Moneda Salida</Label>
@@ -128,12 +145,24 @@ const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
             </Select>
           </div>
           
-          {isTransactionType && (
-            <div className="space-y-1 md:col-span-2">
-              <Label htmlFor="edit-rate">Cotización</Label>
-              <FormattedInput id="edit-rate" value={editedOperation.rate} onChange={(e) => handleFormattedInputChange('rate', e)} />
+          {(isTransactionType || isPercentageFeeType) && (
+            <div className="space-y-1">
+              <Label htmlFor="edit-rate">{isPercentageFeeType ? "Comisión (%)" : "Cotización"}</Label>
+              <FormattedInput id="edit-rate" value={editedOperation.rate} onChange={(e) => handleFormattedInputChange('rate', e)} allowNegative={isPercentageFeeType} />
             </div>
           )}
+          
+          <div className={ (isTransactionType || isPercentageFeeType) ? "" : "md:col-span-2"}>
+            <Label htmlFor="edit-ownerId">Operación de (Usuario)</Label>
+            <SearchableSelect
+                id="edit-ownerId"
+                options={[{value: NO_OWNER_VALUE, label:"Ninguno (Sistema/Empresa)"}, ...userProfiles.map(u => ({ value: u.id, label: u.username || u.id }))]}
+                value={editedOperation.ownerId === NO_OWNER_VALUE ? "" : editedOperation.ownerId}
+                onValueChange={(val) => handleChange('ownerId', val)}
+                placeholder="Seleccionar usuario..."
+            />
+          </div>
+
 
           <div className="md:col-span-2">
             <Label htmlFor="edit-description">Descripción</Label>
@@ -151,7 +180,7 @@ const EditOperationDialog = ({ open, onOpenChange, operation, onSave }) => {
 
 
 const TransactionsPage = () => {
-  const { operations, allOperationsForAdmin, clients, deleteOperation, updateOperation } = useOperations();
+  const { operations, allOperationsForAdmin, clients, deleteOperation, updateOperation, userProfiles, fetchUserProfiles } = useOperations();
   const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -162,11 +191,23 @@ const TransactionsPage = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (userProfiles.length === 0) {
+        fetchUserProfiles();
+    }
+  }, [userProfiles, fetchUserProfiles]);
+
   const dataToDisplay = currentUser?.role === 'admin' ? allOperationsForAdmin : operations;
 
   const getClientNameById = (clientId) => {
     const client = clients.find(c => c.id === clientId);
     return client ? client.name : 'N/A';
+  };
+
+  const getUserNameById = (userId) => {
+    if (!userId) return 'N/A';
+    const profile = userProfiles.find(p => p.id === userId);
+    return profile ? profile.username : userId.substring(0,8); // Fallback to short ID
   };
   
   const getOperationLabel = (value) => {
@@ -192,9 +233,10 @@ const TransactionsPage = () => {
       filtered = filtered.filter(op => 
         op.description?.toLowerCase().includes(lowerSearchTerm) ||
         getClientNameById(op.client)?.toLowerCase().includes(lowerSearchTerm) ||
+        getUserNameById(op.userId)?.toLowerCase().includes(lowerSearchTerm) ||
+        getUserNameById(op.ownerId)?.toLowerCase().includes(lowerSearchTerm) ||
         op.amountIn?.toString().includes(lowerSearchTerm) ||
         op.amountOut?.toString().includes(lowerSearchTerm) ||
-        op.userId?.toLowerCase().includes(lowerSearchTerm) ||
         op.status?.toLowerCase().includes(lowerSearchTerm) ||
         getOperationLabel(op.type)?.toLowerCase().includes(lowerSearchTerm)
       );
@@ -204,7 +246,11 @@ const TransactionsPage = () => {
       filtered.sort((a, b) => {
         let valA = a[sortConfig.key];
         let valB = b[sortConfig.key];
-        if (['amountIn', 'amountOut', 'rate', 'executedAmountIn', 'executedAmountOut', 'remainingAmountIn', 'remainingAmountOut'].includes(sortConfig.key)) {
+
+        if (sortConfig.key === 'userId' || sortConfig.key === 'ownerId') {
+            valA = getUserNameById(valA)?.toLowerCase();
+            valB = getUserNameById(valB)?.toLowerCase();
+        } else if (['amountIn', 'amountOut', 'rate', 'executedAmountIn', 'executedAmountOut', 'remainingAmountIn', 'remainingAmountOut'].includes(sortConfig.key)) {
             valA = parseFloat(valA) || 0;
             valB = parseFloat(valB) || 0;
         } else if (typeof valA === 'string' && typeof valB === 'string') {
@@ -217,7 +263,7 @@ const TransactionsPage = () => {
       });
     }
     return filtered;
-  }, [dataToDisplay, searchTerm, filterType, filterDateStart, filterDateEnd, sortConfig, clients]);
+  }, [dataToDisplay, searchTerm, filterType, filterDateStart, filterDateEnd, sortConfig, clients, userProfiles]);
 
   const requestSort = (key) => {
     let direction = 'ascending';
@@ -320,7 +366,7 @@ const TransactionsPage = () => {
               <Label htmlFor="searchTerm" className="text-sm font-medium">Buscar</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input id="searchTerm" placeholder="Cliente, descripción, monto, estado..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
+                <Input id="searchTerm" placeholder="Cliente, descripción, monto, estado, usuario..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-8" />
               </div>
             </div>
             <div>
@@ -361,7 +407,8 @@ const TransactionsPage = () => {
                     {currentUser?.role === 'admin' && <TableHead onClick={() => requestSort('executedAmountIn')} className="text-right cursor-pointer hover:bg-accent">Ejec. Entrada <ArrowUpDown className="inline h-3 w-3 ml-1" /></TableHead>}
                     {currentUser?.role === 'admin' && <TableHead onClick={() => requestSort('executedAmountOut')} className="text-right cursor-pointer hover:bg-accent">Ejec. Salida <ArrowUpDown className="inline h-3 w-3 ml-1" /></TableHead>}
                     <TableHead className="text-right">Cotización</TableHead>
-                    {currentUser?.role === 'admin' && <TableHead onClick={() => requestSort('userId')} className="cursor-pointer hover:bg-accent">Usuario <ArrowUpDown className="inline h-3 w-3 ml-1" /></TableHead>}
+                    <TableHead onClick={() => requestSort('userId')} className="cursor-pointer hover:bg-accent">Registró <ArrowUpDown className="inline h-3 w-3 ml-1" /></TableHead>
+                    {currentUser?.role === 'admin' && <TableHead onClick={() => requestSort('ownerId')} className="cursor-pointer hover:bg-accent">Op. de <ArrowUpDown className="inline h-3 w-3 ml-1" /></TableHead>}
                     {currentUser?.role === 'admin' && <TableHead className="text-center">Acciones</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -377,8 +424,9 @@ const TransactionsPage = () => {
                       <TableCell className="text-right font-semibold text-red-600 dark:text-red-400 whitespace-nowrap">{formatCurrencyDisplay(op.amountOut, op.currencyOut)}</TableCell>
                       {currentUser?.role === 'admin' && <TableCell className="text-right text-xs text-green-500 whitespace-nowrap">{formatCurrencyDisplay(op.executedAmountIn, op.currencyIn)}</TableCell>}
                       {currentUser?.role === 'admin' && <TableCell className="text-right text-xs text-red-500 whitespace-nowrap">{formatCurrencyDisplay(op.executedAmountOut, op.currencyOut)}</TableCell>}
-                      <TableCell className="text-right text-xs whitespace-nowrap">{op.rate ? Number(op.rate).toFixed(4) : '-'}</TableCell>
-                      {currentUser?.role === 'admin' && <TableCell className="text-xs whitespace-nowrap">{op.userId}</TableCell>}
+                      <TableCell className="text-right text-xs whitespace-nowrap">{op.rate ? (op.rateType === 'percentage_fee' ? `${Number(op.rate).toFixed(2)}%` : Number(op.rate).toFixed(4)) : '-'}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{getUserNameById(op.userId)}</TableCell>
+                      {currentUser?.role === 'admin' && <TableCell className="text-xs whitespace-nowrap">{getUserNameById(op.ownerId)}</TableCell>}
                       {currentUser?.role === 'admin' && (
                         <TableCell className="text-center space-x-1 whitespace-nowrap">
                           <Button variant="ghost" size="icon" className="h-7 w-7 hover:text-primary" onClick={() => handleEdit(op)}><Edit3 size={16}/></Button>
@@ -413,6 +461,7 @@ const TransactionsPage = () => {
           onOpenChange={setIsEditDialogOpen} 
           operation={operationToEdit}
           onSave={handleSaveEdit}
+          userProfiles={userProfiles}
         />
       )}
     </motion.div>
