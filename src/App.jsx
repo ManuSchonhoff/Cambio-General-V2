@@ -1,4 +1,3 @@
-
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,21 +73,29 @@ function AppContent() {
 
   useEffect(() => {
     const testSupabaseConnection = async () => {
-      const { data, error } = await supabase.from('profiles').select('*').limit(1);
-      if (error) {
-        console.error("[AppContent Test Supabase] Error:", error);
-      } else {
-        console.log("[AppContent Test Supabase] Data:", data);
+      try {
+        const { data, error } = await supabase.from('profiles').select('*').limit(1);
+        if (error) {
+          console.error("[AppContent Test Supabase] Error:", error.message);
+        } else {
+          console.log("[AppContent Test Supabase] Data:", data);
+        }
+      } catch (err) {
+        console.error("[AppContent Test Supabase] Unexpected Error:", err.message);
       }
     };
+
     if (initialAuthChecked) { 
         testSupabaseConnection();
     }
   }, [initialAuthChecked]);
 
-
-  if (!initialAuthChecked) {
+  if (!initialAuthChecked || loading) {
     return <GlobalLoadingIndicator />; 
+  }
+
+  if (!currentUser) {
+    return <LoginPage />;
   }
   
   return (
