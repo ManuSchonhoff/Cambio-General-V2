@@ -23,7 +23,7 @@ const ManageExpenseCategoriesDialog = ({ open, onOpenChange, currentCategories, 
     const { toast } = useToast();
 
     const operationTypeOptions = availableOperationTypes
-        .filter(type => !type.isTransactional && !currentCategories.includes(type.value)) 
+       .filter(type => !type.isTransactional && !(Array.isArray(currentCategories) && currentCategories.includes(type.value)))
         .map(type => ({ value: type.value, label: type.label, icon: type.icon }));
     
     const getOperationTypeLabel = (value) => {
@@ -74,7 +74,7 @@ const ManageExpenseCategoriesDialog = ({ open, onOpenChange, currentCategories, 
                     
                     <div className="space-y-2">
                         <Label>Categorías de Gastos Actuales</Label>
-                        {currentCategories.length > 0 ? (
+                    {Array.isArray(currentCategories) && currentCategories.length > 0 ? (
                             <div className="max-h-60 overflow-y-auto space-y-1 border rounded-md p-2 bg-background/50">
                                 {currentCategories.map(category => (
                                     <div key={category} className="flex items-center justify-between p-2 rounded hover:bg-accent">
@@ -101,6 +101,8 @@ const ManageExpenseCategoriesDialog = ({ open, onOpenChange, currentCategories, 
 
 const ExpensesPage = () => {
   const { operations, expenseCategories, addExpenseCategory, removeExpenseCategory } = useOperations();
+  const safeOperations = Array.isArray(operations) ? operations : [];
+const safeExpenseCategories = Array.isArray(expenseCategories) ? expenseCategories : [];
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
@@ -111,9 +113,10 @@ const ExpensesPage = () => {
   }, []);
 
 
-  const expenseOperations = useMemo(() => {
-    return operations.filter(op => expenseCategories.includes(op.type));
-  }, [operations, expenseCategories]);
+const expenseOperations = useMemo(() => {
+  return safeOperations.filter(op => safeExpenseCategories.includes(op.type));
+}, [safeOperations, safeExpenseCategories]);
+
 
   const aggregatedExpenses = useMemo(() => {
     const grouped = {};
@@ -273,7 +276,7 @@ const ExpensesPage = () => {
         <ManageExpenseCategoriesDialog
             open={isManageCategoriesOpen}
             onOpenChange={setIsManageCategoriesOpen}
-            currentCategories={expenseCategories}
+          currentCategories={safeExpenseCategories}
             availableOperationTypes={allDefinedOperationTypes}
             onAddCategory={addExpenseCategory}
             onRemoveCategory={removeExpenseCategory}

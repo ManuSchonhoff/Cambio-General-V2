@@ -110,10 +110,11 @@ const SocietyPage = () => {
      toast({title: "Socio Guardado", description: `Los datos de ${partnerData.name} se han guardado.`});
   };
 
+  const safeOperations = Array.isArray(operations) ? operations : [];
   const partnerOperations = useMemo(() => {
     const partnerClientIds = clients.filter(c => partners.some(p => p.name.toLowerCase() === c.name.toLowerCase())).map(c => c.id);
     
-    return operations.filter(op => 
+    return safeOperations.filter(op =>
       (Object.values(SOCIO_OPERATION_TYPES).includes(op.type)) &&
       (op.client && partnerClientIds.includes(op.client)) // Ensure client is one of the partners
     );

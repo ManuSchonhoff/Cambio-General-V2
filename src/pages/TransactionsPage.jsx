@@ -192,12 +192,15 @@ const TransactionsPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (userProfiles.length === 0) {
+    if (Array.isArray(userProfiles) && userProfiles.length === 0) {
         fetchUserProfiles();
     }
   }, [userProfiles, fetchUserProfiles]);
 
-  const dataToDisplay = currentUser?.role === 'admin' ? allOperationsForAdmin : operations;
+const rawData = (currentUser?.role === 'admin' ? allOperationsForAdmin : operations) || [];
+const dataToDisplay = Array.isArray(rawData) ? rawData : [];
+
+
 
   const getClientNameById = (clientId) => {
     const client = clients.find(c => c.id === clientId);
@@ -216,7 +219,7 @@ const TransactionsPage = () => {
   };
 
   const filteredAndSortedOperations = useMemo(() => {
-    let filtered = [...dataToDisplay];
+    let filtered = Array.isArray(dataToDisplay) ? [...dataToDisplay] : [];
     if (filterType !== 'all') {
       filtered = filtered.filter(op => op.type === filterType);
     }

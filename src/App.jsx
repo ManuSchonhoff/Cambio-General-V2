@@ -24,7 +24,6 @@ import FutureCashPage from '@/pages/FutureCashPage.jsx';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 import { OperationProvider } from '@/context/OperationContext.jsx';
 import { useToast } from "@/components/ui/use-toast";
-import { debug } from '@/lib/logger.js';
 
 const GlobalLoadingIndicator = () => {
     const { loading: authIsLoading, initialAuthChecked } = useAuth();
@@ -52,9 +51,10 @@ const EmergencyFallback = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (!initialAuthChecked && !loading) {
+        console.warn("[EmergencyFallback] Application failed to load in time.");
         toast({
           title: "Problema de Carga",
-          description: "La aplicación no pudo iniciar correctamente. Serás redirigido al inicio de sesión.",
+          description: "La aplicación no pudo iniciar correctamente. Será redirigido al inicio de sesión.",
           variant: "destructive",
           duration: 7000,
         });
@@ -69,71 +69,72 @@ const EmergencyFallback = () => {
 };
 
 function AppContent() {
-  const { currentUser, loading, initialAuthChecked } = useAuth(); 
+  const { currentUser, loading, initialAuthChecked } = useAuth();
 
   useEffect(() => {
     const testSupabaseConnection = async () => {
       try {
+        console.log('[AppContent] Testing Supabase connection...');
         const { data, error } = await supabase.from('profiles').select('*').limit(1);
         if (error) {
-          console.error("[AppContent Test Supabase] Error:", error.message);
+          console.error('[AppContent] Supabase connection error:', error.message);
         } else {
-          console.log("[AppContent Test Supabase] Data:", data);
+          console.log('[AppContent] Supabase connection successful:', data);
         }
       } catch (err) {
-        console.error("[AppContent Test Supabase] Unexpected Error:", err.message);
+        console.error('[AppContent] Unexpected error during Supabase connection test:', err.message);
       }
     };
 
-    if (initialAuthChecked) { 
-        testSupabaseConnection();
+    if (initialAuthChecked) {
+      testSupabaseConnection();
     }
   }, [initialAuthChecked]);
 
   if (!initialAuthChecked || loading) {
-    return <GlobalLoadingIndicator />; 
+    return <GlobalLoadingIndicator />;
   }
 
   if (!currentUser) {
     return <LoginPage />;
   }
-  
+
   return (
     <>
       <EmergencyFallback />
       <OperationProvider>
-          <AnimatePresence mode="wait">
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <MainLayout />
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<LoadOperationPage />} />
+              <Route path="pending-operations" element={<PendingOperationsPage />} />
+              <Route path="transactions" element={<TransactionsPage />} />
+              <Route path="cash" element={<CashPage />} />
+              <Route path="future-cash" element={<FutureCashPage />} />
+              <Route path="expenses" element={<ExpensesPage />} />
+              <Route path="society" element={<SocietyPage />} />
+              <Route path="clients" element={<ClientsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="admin/users" element={
+                <ProtectedRoute adminOnly={true}>
+                  <UserManagementPage />
                 </ProtectedRoute>
-              }>
-                <Route index element={<LoadOperationPage />} />
-                <Route path="pending-operations" element={<PendingOperationsPage />} />
-                <Route path="transactions" element={<TransactionsPage />} />
-                <Route path="cash" element={<CashPage />} />
-                <Route path="future-cash" element={<FutureCashPage />} />
-                <Route path="expenses" element={<ExpensesPage />} />
-                <Route path="society" element={<SocietyPage />} />
-                <Route path="clients" element={<ClientsPage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="admin/users" element={
-                  <ProtectedRoute adminOnly={true}>
-                    <UserManagementPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="admin/log" element={
-                  <ProtectedRoute adminOnly={true}>
-                    <AdminLogPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-          </AnimatePresence>
-          <Toaster />
+              } />
+              <Route path="admin/log" element={
+                <ProtectedRoute adminOnly={true}>
+                  <AdminLogPage />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFoundPage />} />
+            </Route>
+          </Routes>
+        </AnimatePresence>
+        <Toaster />
       </OperationProvider>
     </>
   );

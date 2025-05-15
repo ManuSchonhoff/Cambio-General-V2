@@ -37,6 +37,7 @@ const MainLayout = () => {
     { path: '/pending-operations', label: 'Pendientes', icon: ClockHistory },
     { path: '/transactions', label: 'Historial Ops.', icon: ListChecks },
     { path: '/cash', label: 'Caja', icon: Briefcase },
+    { path: '/future-cash', label: 'Caja Futura', icon: Briefcase },
     { path: '/clients', label: 'Clientes', icon: Users2 },
     { path: '/expenses', label: 'Gastos/Costos', icon: FileText },
     { path: '/society', label: 'Sociedad', icon: Building },
@@ -100,10 +101,11 @@ const MainLayout = () => {
   const SidebarContent = () => (
     <>
       <div className="text-center mb-8 mt-2">
-        <Link to="/" onClick={handleNavLinkClick} className="flex items-center justify-center gap-2 text-2xl font-bold text-primary hover:text-primary/90 transition-colors">
-          <Activity className="h-7 w-7" />
-          <span>CambioGeneral</span>
-        </Link>
+       <Link to="/" onClick={handleNavLinkClick} className="flex items-center justify-center gap-2">
+ <img src="/archivo-cambio-general.svg" alt="Logo" className="h-100 w-auto max-h-[104px]" />
+
+</Link>
+
         <p className="text-xs text-muted-foreground mt-1">Registro Contable</p>
       </div>
       <nav className="space-y-1.5 flex-grow">

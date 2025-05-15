@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings, ShieldCheck } from 'lucide-react';
-import { debug } from '@/lib/logger.js';
+import { debug } from '@/lib/logger.jsx';
 
 const UserAvatarMenu = () => {
   const { currentUser, logout } = useAuth();

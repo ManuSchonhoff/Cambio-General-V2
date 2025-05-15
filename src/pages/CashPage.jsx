@@ -8,11 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Wallet, RefreshCw, BarChart3, PlusCircle, Edit3, Trash2, Save } from 'lucide-react';
 import { formatCurrency, parseFormattedNumber } from '@/lib/utils';
 import FormattedInput from '@/components/FormattedInput.jsx';
 import { useToast } from "@/components/ui/use-toast.js";
+import { getStoredExchangeRates, saveExchangeRates, updateExchangeRate, getExchangeRateInverted } from '@/lib/exchangeRates';
+
 
 const cashBoxTypes = [
     {value: "cash", label: "Efectivo"},
@@ -22,6 +24,7 @@ const cashBoxTypes = [
 ];
 
 const availableCurrencies = ["ARS", "USD", "EUR", "USDT", "BRL", "GBP"];
+
 
 
 const CashBoxFormDialog = ({ open, onOpenChange, cashBox, onSave }) => {
@@ -97,10 +100,10 @@ const AdjustBalanceDialog = ({ open, onOpenChange, cashBox, onAdjust }) => {
     const { toast } = useToast();
 
     useEffect(() => {
-        if (cashBox && open) { // Reset only when dialog opens with a cashbox
+        if (cashBox && open) { 
             setNewBalance(cashBox.balance); 
             setReason('');
-        } else if (!open) { // Clear on close
+        } else if (!open) { 
             setNewBalance(null);
             setReason('');
         }
@@ -158,17 +161,19 @@ const CashPage = () => {
   const { cashBoxes, addCashBox, updateCashBox, adjustCashBoxBalance, deleteCashBox } = useOperations();
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  const [exchangeRates, setExchangeRates] = useState({
-    EUR: 1.08, 
-    USDT: 1.00, 
-    ARS: 0.001, 
-    BRL: 0.20,  
-    GBP: 1.27   
-  });
+  
+const [exchangeRates, setExchangeRates] = useState(() => getStoredExchangeRates());
+
+
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [editingCashBox, setEditingCashBox] = useState(null);
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
   const [adjustingCashBox, setAdjustingCashBox] = useState(null);
+
+  useEffect(() => {
+  saveExchangeRates(exchangeRates);
+}, [exchangeRates]);
+
 
 
   const totalBalanceInUSD = useMemo(() => {
@@ -179,9 +184,10 @@ const CashPage = () => {
   }, [cashBoxes, exchangeRates]);
 
   const handleRateChange = (currency, event) => {
-    const value = event.target.value; 
-    setExchangeRates(prev => ({ ...prev, [currency]: value !== null ? value : 0 }));
-  };
+  const value = event.target.value;
+  setExchangeRates(prev => updateExchangeRate(currency, value, prev));
+};
+
   
   const handleSaveCashBox = (data) => {
     try {
@@ -275,7 +281,7 @@ const CashPage = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2"><RefreshCw className="h-5 w-5"/> Cotizaciones a USD</CardTitle>
-              <CardDescription>Define las tasas de cambio para convertir otras monedas a USD.</CardDescription>
+              <CardDescription>Define las tasas de cambio para convertir otras monedas a USD. Estos valores se guardarán.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {Object.keys(exchangeRates).filter(c => c !== "USD" && c !== "ARS").map(currency => ( 
@@ -297,13 +303,10 @@ const CashPage = () => {
                     name="rate-ARS"
                     value={exchangeRates["ARS"] ? 1 / exchangeRates["ARS"] : null} 
                     onChange={(e) => {
-                        const arsPerUsd = e.target.value;
-                        if (arsPerUsd !== null && arsPerUsd !== 0) {
-                            handleRateChange("ARS", {target: {value: 1 / arsPerUsd }});
-                        } else {
-                             handleRateChange("ARS", {target: {value: 0 }});
-                        }
-                    }}
+  const inverted = getExchangeRateInverted(e.target.value);
+  setExchangeRates(prev => updateExchangeRate("ARS", inverted, prev));
+}}
+
                     placeholder="0,00"
                   />
                 </div>

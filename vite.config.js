@@ -2,6 +2,7 @@ import path from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+// Manejo de errores de Vite
 const configHorizonsViteErrorHandler = `
 const observer = new MutationObserver((mutations) => {
 	for (const mutation of mutations) {
@@ -49,6 +50,7 @@ function handleViteOverlay(node) {
 }
 `;
 
+// Manejo de errores en tiempo de ejecución
 const configHorizonsRuntimeErrorHandler = `
 window.onerror = (message, source, lineno, colno, errorObj) => {
 	const errorDetails = errorObj ? JSON.stringify({
@@ -68,7 +70,8 @@ window.onerror = (message, source, lineno, colno, errorObj) => {
 };
 `;
 
-const configHorizonsConsoleErrroHandler = `
+// Manejo de errores de consola
+const configHorizonsConsoleErrorHandler = `
 const originalConsoleError = console.error;
 console.error = function(...args) {
 	originalConsoleError.apply(console, args);
@@ -94,6 +97,7 @@ console.error = function(...args) {
 };
 `;
 
+// Monkey-patch para interceptar fetch
 const configWindowFetchMonkeyPatch = `
 const originalFetch = window.fetch;
 
@@ -133,6 +137,7 @@ window.fetch = function(...args) {
 };
 `;
 
+// Plugin para agregar scripts personalizados al index.html
 const addTransformIndexHtml = {
 	name: 'add-transform-index-html',
 	transformIndexHtml(html) {
@@ -153,8 +158,8 @@ const addTransformIndexHtml = {
 				},
 				{
 					tag: 'script',
-					attrs: {type: 'module'},
-					children: configHorizonsConsoleErrroHandler,
+					attrs: { type: 'module' },
+					children: configHorizonsConsoleErrorHandler,
 					injectTo: 'head',
 				},
 				{
@@ -168,8 +173,7 @@ const addTransformIndexHtml = {
 	},
 };
 
-console.warn = () => {};
-
+// Configuración principal de Vite
 export default defineConfig({
 	plugins: [react(), addTransformIndexHtml],
 	server: {
@@ -180,7 +184,7 @@ export default defineConfig({
 		allowedHosts: true,
 	},
 	resolve: {
-		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],
+		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json'],
 		alias: {
 			'@': path.resolve(__dirname, './src'),
 		},

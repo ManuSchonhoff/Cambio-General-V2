@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient.js';
 import { useToast } from "@/components/ui/use-toast";
-import { debug } from '@/lib/logger.js';
+import { debug } from '@/lib/logger.jsx';
 
 const AuthContext = createContext(null);
 
@@ -51,22 +51,23 @@ const getInitialTheme = () => {
 const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initialAuthChecked, setInitialAuthChecked] = useState(false);
   const { toast } = useToast();
 
   const getSessionAndUserProfile = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('[AuthProvider] Fetching session...');
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session) {
-        debug.error('[AuthProvider] No session found:', error?.message || 'No session');
+        console.warn('[AuthProvider] No session found:', error?.message || 'No session');
         setCurrentUser(null);
-        setLoading(false);
         return;
       }
 
       const user = data.session.user;
-      debug.log('[AuthProvider] Session found:', user);
+      console.log('[AuthProvider] Session found:', user);
 
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -75,33 +76,44 @@ const AuthProvider = ({ children }) => {
         .single();
 
       if (profileError) {
-        if (profileError.code === '42703') {
-          // Columna `theme` no existe
-          debug.error('[AuthProvider] Columna `theme` no existe en la tabla profiles.');
-          toast({ title: "Error", description: "Verifica la configuración de la base de datos. La columna `theme` no existe.", variant: "destructive" });
-        } else {
-          debug.error('[AuthProvider] Error fetching profile:', profileError.message);
-          toast({ title: "Error", description: "No se pudo cargar el perfil.", variant: "destructive" });
-        }
+        console.error('[AuthProvider] Error fetching profile:', profileError.message);
+        toast({ title: "Error", description: "No se pudo cargar el perfil.", variant: "destructive" });
         setCurrentUser({ ...user, role: 'user', theme: getInitialTheme() });
       } else {
+        console.log('[AuthProvider] Profile loaded successfully:', profile);
         setCurrentUser({ ...user, ...profile });
         defaultApplyTheme(profile.theme || 'system');
       }
     } catch (err) {
-      debug.error('[AuthProvider] Unexpected error:', err.message);
+      console.error('[AuthProvider] Unexpected error:', err.message);
     } finally {
       setLoading(false);
+      setInitialAuthChecked(true);
     }
   }, [toast]);
 
   useEffect(() => {
-    debug.log('[AuthProvider] Initializing...');
-    getSessionAndUserProfile();
+    console.log('[AuthProvider] Initializing...');
+    getSessionAndUserProfile().then(() => {
+      console.log('[AuthProvider] Initialization complete.');
+    });
   }, [getSessionAndUserProfile]);
 
+  // ✅ FUNCIÓN DE LOGIN FINAL: con logs y actualización de usuario
+  const login = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log('[login()] Resultado:', { data, error });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Actualiza el perfil del usuario después de iniciar sesión
+    await getSessionAndUserProfile();
+    return data;
+  };
+
   return (
-    <AuthContext.Provider value={{ currentUser, loading }}>
+    <AuthContext.Provider value={{ currentUser, loading, initialAuthChecked, login }}>
       {children}
     </AuthContext.Provider>
   );

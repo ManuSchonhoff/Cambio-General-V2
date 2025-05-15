@@ -4,79 +4,65 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Light Grayish Blue */
-    --foreground: 224 71.4% 4.1%; /* Dark Blue */
-    --card: 0 0% 100%; /* White */
-    --card-foreground: 224 71.4% 4.1%; /* Dark Blue */
-    --popover: 0 0% 100%; /* White */
-    --popover-foreground: 224 71.4% 4.1%; /* Dark Blue */
-    
-    /* Light Blue Theme */
-    --primary: 205 90% 50%; /* Brighter Sky Blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    
-    --secondary: 200 80% 92%; /* Very Light Blue */
-    --secondary-foreground: 205 90% 30%; /* Darker Sky Blue */
-    
-    --muted: 210 40% 92%; /* Light Grayish Blue - Muted */
-    --muted-foreground: 210 30% 45%; /* Medium Grayish Blue */
-    
-    --accent: 195 85% 88%; /* Pale Sky Blue - Accent */
-    --accent-foreground: 205 90% 25%; /* Dark Sky Blue */
-    
-    --destructive: 0 72% 51%; /* Brighter Red */
-    --destructive-foreground: 0 0% 100%; /* White */
-    
-    --border: 200 50% 85%; /* Light Blue-Gray Border */
-    --input: 200 50% 88%; /* Light Blue-Gray Input */
-    --ring: 205 90% 60%; /* Sky Blue for Ring */
-    
+    --background: 210 40% 98%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 205 90% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 80% 92%;
+    --secondary-foreground: 205 90% 30%;
+    --muted: 210 40% 92%;
+    --muted-foreground: 210 30% 45%;
+    --accent: 195 85% 88%;
+    --accent-foreground: 205 90% 25%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 50% 85%;
+    --input: 200 50% 88%;
+    --ring: 205 90% 60%;
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 224 71.4% 4.1%; /* Dark Blue */
-    --foreground: 210 40% 98%; /* Light Grayish Blue */
-    --card: 222 70% 8%; /* Darker Blue */
-    --card-foreground: 210 40% 98%; /* Light Grayish Blue */
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 40% 98%;
+    --card: 222 70% 8%;
+    --card-foreground: 210 40% 98%;
     --popover: 224 71.4% 4.1%;
     --popover-foreground: 210 40% 98%;
-    
-    --primary: 205 80% 55%; /* Vivid Sky Blue for Dark Mode */
-    --primary-foreground: 224 71.4% 4.1%; /* Dark Blue */
-    
-    --secondary: 215 40% 15%; /* Dark Slate Blue */
-    --secondary-foreground: 210 40% 90%; /* Lighter Grayish Blue */
-    
-    --muted: 215 30% 12%; /* Very Dark Slate Blue */
-    --muted-foreground: 210 30% 60%; /* Medium Grayish Blue */
-    
-    --accent: 200 70% 25%; /* Deep Sky Blue Accent */
-    --accent-foreground: 210 40% 98%; /* Light Grayish Blue */
-    
-    --destructive: 0 60% 45%; /* Darker Red */
-    --destructive-foreground: 0 0% 98%; /* Off-White */
-    
-    --border: 215 30% 20%; /* Dark Blue-Gray Border */
-    --input: 215 30% 22%; /* Dark Blue-Gray Input */
-    --ring: 205 80% 50%; /* Vivid Sky Blue for Ring */
+    --primary: 205 80% 55%;
+    --primary-foreground: 224 71.4% 4.1%;
+    --secondary: 215 40% 15%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 215 30% 12%;
+    --muted-foreground: 210 30% 60%;
+    --accent: 200 70% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 30% 20%;
+    --input: 215 30% 22%;
+    --ring: 205 80% 50%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  .gradient-blue-bg {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(215, 85%, 60%) 100%);
-  }
-
   .container {
     @apply px-4 mx-auto md:px-8 lg:px-16;
   }
+}
+
+/* ✅ Movido afuera del @layer para asegurar compatibilidad */
+.gradient-blue-bg {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(215, 85%, 60%) 100%);
 }

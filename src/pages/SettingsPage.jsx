@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/components/ui/use-toast';
 import { motion } from 'framer-motion';
 import { User, Lock, Image as ImageIcon, Edit3, Check, AlertCircle } from 'lucide-react';
-import { debug } from '@/lib/logger.js';
+import { debug } from '@/lib/logger.jsx';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -144,19 +144,20 @@ const SettingsPage = () => {
     }
   };
   
-  if (authLoading && !initialAuthChecked) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="p-4 bg-slate-800/80 rounded-lg shadow-2xl flex flex-col items-center">
-          <svg className="animate-spin h-10 w-10 text-sky-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <p className="text-slate-300 text-sm">Cargando configuración...</p>
-        </div>
-      </div>
-    );
-  }
+
+  console.log("initialAuthChecked", initialAuthChecked);
+console.log("currentUser", currentUser);
+
+if (!initialAuthChecked) {
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <p className="text-muted-foreground">Cargando configuración...</p>
+    </div>
+  );
+}
+
+
+
 
   if (initialAuthChecked && !currentUser) {
      return (
@@ -185,13 +186,15 @@ const SettingsPage = () => {
                 <CardHeader className="items-center text-center">
                     <div className="relative mb-4">
                         <img  
-                            alt={currentUser?.username || "Avatar de Usuario"}
-                            className="w-32 h-32 rounded-full object-cover border-4 border-primary/50 shadow-md"
-                            style={{ objectFit: 'cover' }}
-                         src="https://images.unsplash.com/photo-1697383904756-5e8928369093" />
-                        <Label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
-                            <ImageIcon size={18} />
-                        </Label>
+  alt={currentUser?.username || "Avatar de Usuario"}
+  className="w-32 h-32 rounded-full object-cover border-4 border-primary/50 shadow-md"
+  style={{ objectFit: 'cover' }}
+  src={avatarPreview || `https://avatar.vercel.sh/${currentUser.id}.png?size=80`}
+/>
+<Label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
+  <ImageIcon size={18} />
+</Label>
+
                         <Input id="avatar-upload" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
                     </div>
                     <CardTitle className="text-2xl font-semibold text-foreground">{currentUser?.username || "Usuario"}</CardTitle>

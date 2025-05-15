@@ -223,6 +223,8 @@ const PendingOperationsPage = () => {
   };
 
 
+    const safePendingOps = Array.isArray(pendingOperations) ? pendingOperations : [];
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <Card className="shadow-lg border-t-4 border-amber-500">
@@ -233,7 +235,7 @@ const PendingOperationsPage = () => {
           <CardDescription>Operaciones registradas que aún no se han completado o están parcialmente ejecutadas.</CardDescription>
         </CardHeader>
         <CardContent>
-          {pendingOperations.length === 0 ? (
+          {safePendingOps.length === 0 ? (
             <div className="text-center py-10 text-slate-500">
               <Info className="mx-auto h-12 w-12 mb-4 text-slate-400" />
               <p className="text-xl font-semibold">No hay operaciones pendientes.</p>
@@ -256,7 +258,7 @@ const PendingOperationsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pendingOperations.map(op => (
+                {safePendingOps.map(op => (
                   <TableRow key={op.id}>
                     <TableCell>{new Date(op.timestamp).toLocaleDateString('es-AR')}</TableCell>
                     <TableCell>{operationTypeLabels[op.type] || op.type}</TableCell>
@@ -283,16 +285,17 @@ const PendingOperationsPage = () => {
           )}
         </CardContent>
       </Card>
+
       {isModalOpen && selectedOperation && (
         <AlertDialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <ExecuteOperationModal 
-                operation={selectedOperation}
-                onExecute={handleExecute}
-                onCancel={() => {
-                    setIsModalOpen(false);
-                    setSelectedOperation(null);
-                }}
-            />
+          <ExecuteOperationModal 
+            operation={selectedOperation}
+            onExecute={handleExecute}
+            onCancel={() => {
+              setIsModalOpen(false);
+              setSelectedOperation(null);
+            }}
+          />
         </AlertDialog>
       )}
     </motion.div>
