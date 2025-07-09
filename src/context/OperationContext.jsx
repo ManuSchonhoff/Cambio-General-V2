@@ -145,6 +145,19 @@ export const OperationProvider = ({ children }) => {
       setLoading(false);
     }
   }, [currentUser, toast]);
+  const fetchClients = useCallback(async () => {
+  try {
+    const { data, error } = await supabase.from('clientes').select('*');
+    if (error) throw error;
+    setClients(data || []);
+    localStorage.setItem(CLIENTS_KEY, JSON.stringify(data || []));
+    debug.log('[OperationContext] fetchClients: Clientes cargados desde Supabase:', data);
+  } catch (error) {
+    debug.error('[OperationContext] fetchClients: Error al cargar clientes desde Supabase:', error);
+    toast({ title: "Error", description: "No se pudieron cargar los clientes.", variant: "destructive" });
+  }
+}, [toast]);
+
   
   useEffect(() => {
     // Fetch profiles when context mounts, especially useful for admins
@@ -525,6 +538,7 @@ export const OperationProvider = ({ children }) => {
         addClient,
         updateClient,
         deleteClient,
+        fetchClients,
         expenses,
         addExpense,
         deleteExpense,

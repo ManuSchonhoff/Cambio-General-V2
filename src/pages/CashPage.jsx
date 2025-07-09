@@ -21,6 +21,8 @@ const cashBoxTypes = [
     {value: "digital", label: "Moneda Digital (Crypto)"},
     {value: "digital_account", label: "Cuenta Digital (App/Fintech)"},
     {value: "bank_account", label: "Cuenta Bancaria"},
+    { value: "digital_wallet", label: "Wallet Digital (Cripto/Fiat)" },
+
 ];
 
 const availableCurrencies = ["ARS", "USD", "EUR", "USDT", "BRL", "GBP"];

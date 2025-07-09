@@ -13,6 +13,8 @@ import FormattedInput from '@/components/FormattedInput.jsx';
 import { Input } from '@/components/ui/input';
 import SearchableSelect from '@/components/SearchableSelect.jsx';
 import ExecuteOperationModal from '@/components/ExecuteOperationModal.jsx'; 
+import { supabase } from '@/lib/supabaseClient.js';
+
 
 export const operationCategories = {
   TRANSACTION: "Transacciones",
@@ -236,7 +238,7 @@ const CableDetailsForm = ({ cableData, onCableDataChange }) => {
 
 
 const LoadOperationPage = () => {
-  const { addOperation, executeOperation, clients, addClient, cashBoxes, userProfiles, fetchUserProfiles } = useOperations();
+  const { addOperation, executeOperation, clients, addClient, cashBoxes, userProfiles, fetchUserProfiles, fetchClients } = useOperations();
   const { currentUser } = useAuth();
   const { toast } = useToast();
 
@@ -262,6 +264,10 @@ useEffect(() => {
     fetchUserProfiles();
   }
 }, [userProfiles, fetchUserProfiles]);
+useEffect(() => {
+  fetchClients();
+}, []);
+
 
 
   const selectedOperationConfig = useMemo(() => {
@@ -400,20 +406,48 @@ useEffect(() => {
   }, [amountIn, amountOut, rate, isTransactional, autoCalculate, lastEditedField, selectedOperationConfig]);
 
 
-  const handleAddNewClient = async () => {
-    if (!newClientName.trim()) {
-      toast({ title: "Error", description: "El nombre del nuevo cliente no puede estar vacío.", variant: "destructive" });
-      return;
+
+
+const handleAddNewClient = async () => {
+  if (!newClientName.trim()) {
+    toast({
+      title: "Error",
+      description: "El nombre del nuevo cliente no puede estar vacío.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert([{ name: newClientName }])
+      .select()
+      .single();
+
+    if (error || !data) {
+      throw new Error(error?.message || "No se pudo crear el cliente.");
     }
-    try {
-      const newClientData = await addClient(newClientName, {}); 
-      setClient(newClientData.id);
-      setNewClientName('');
-      toast({ title: "Éxito", description: `Cliente "${newClientData.name}" agregado.`, icon: <CheckCircle /> });
-    } catch (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
+
+    setClient(data.id);
+    if (!clients.find(c => c.id === data.id)) {
+  clients.push(data);
+}
+    setNewClientName('');
+    toast({
+      title: "Éxito",
+      description: `Cliente "${data.name}" agregado.`,
+      icon: <CheckCircle />,
+    });
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: error.message,
+      variant: "destructive",
+    });
+  }
+};
+
 
   const resetForm = () => {
     setOperationType('');
