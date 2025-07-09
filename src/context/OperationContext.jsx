@@ -167,27 +167,41 @@ export const OperationProvider = ({ children }) => {
   }, [currentUser, fetchUserProfiles]);
 
 
-  const addOperation = (operationData) => {
-    if (!currentUser) {
-      toast({ title: "Error", description: "Debes estar logueado para registrar operaciones.", variant: "destructive" });
-      return;
-    }
-    const newOperation = {
-      ...operationData,
-      id: uuidv4(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      userId: currentUser.id, 
-      executedAmountIn: 0,
-      executedAmountOut: 0,
-      executions: [],
-      ownerId: operationData.ownerId || currentUser.id, // Default to current user if no owner specified
-    };
+const addOperation = async (operationData) => {
+  if (!currentUser) {
+    toast({ title: "Error", description: "Debes estar logueado para registrar operaciones.", variant: "destructive" });
+    return;
+  }
+
+  const newOperation = {
+    ...operationData,
+    id: uuidv4(),
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    userId: currentUser.id,
+    executedAmountIn: 0,
+    executedAmountOut: 0,
+    executions: [],
+    ownerId: operationData.ownerId || currentUser.id,
+  };
+
+  try {
+    const { error } = await supabase.from('operations').insert([newOperation]);
+    if (error) throw error;
     setOperations(prev => [newOperation, ...prev]);
     logAdminAction('OPERATION_CREATE', { operationId: newOperation.id, type: newOperation.type });
     toast({ title: "Éxito", description: "Operación registrada correctamente." });
-  };
+  } catch (err) {
+    toast({
+  title: "Error",
+  description: typeof err === 'object' ? JSON.stringify(err, null, 2) : String(err),
+  variant: "destructive",
+  duration: 10000
+});
+  }
+};
+
 
   const updateOperation = (operationId, updates) => {
     setOperations(prev =>

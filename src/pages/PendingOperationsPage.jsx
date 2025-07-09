@@ -58,6 +58,8 @@ const cashBoxesDefinition = [
 ];
 
 const ExecuteOperationModal = ({ operation, onExecute, onCancel }) => {
+  const isEntrada = operation.amountIn > 0;
+  const isSalida = operation.amountOut > 0;
   const { toast } = useToast();
   const [execAmountIn, setExecAmountIn] = useState(null);
   const [execCurrencyIn, setExecCurrencyIn] = useState(operation.currencyIn || '');
@@ -67,8 +69,9 @@ const ExecuteOperationModal = ({ operation, onExecute, onCancel }) => {
   const [targetCashBoxIn, setTargetCashBoxIn] = useState(operation.currencyIn ? cashBoxesDefinition.find(cb => cb.currency === operation.currencyIn)?.id || '' : '');
   const [targetCashBoxOut, setTargetCashBoxOut] = useState(operation.currencyOut ? cashBoxesDefinition.find(cb => cb.currency === operation.currencyOut)?.id || '' : '');
 
-  const remainingIn = operation.remainingAmountIn || 0;
-  const remainingOut = operation.remainingAmountOut || 0;
+  const remainingIn = operation.amountIn - (operation.executedAmountIn || 0);
+  const remainingOut = operation.amountOut - (operation.executedAmountOut || 0);
+
 
   useEffect(() => {
     if (remainingIn > 0.001) setExecAmountIn(remainingIn); else setExecAmountIn(null);
@@ -134,13 +137,16 @@ const ExecuteOperationModal = ({ operation, onExecute, onCancel }) => {
       <div className="space-y-4 py-4">
         {operation.amountIn > 0 && (
           <div className="space-y-2">
-            <Label>Monto Entrada a Ejecutar ({operation.currencyIn}) - Pendiente: {formatNumberForDisplay(remainingIn)}</Label>
+            <Label>
+  {isEntrada ? 'Monto Entrada a Ejecutar' : 'Monto a Ejecutar'} ({operation.currencyIn}) - Pendiente: {formatNumberForDisplay(remainingIn)}
+</Label>
             <FormattedInput 
               value={execAmountIn} 
               onChange={(e) => setExecAmountIn(e.target.value)} 
               placeholder={`Máx. ${formatNumberForDisplay(remainingIn)}`}
             />
-            <Label>Caja Destino Entrada</Label>
+            <Label>{isEntrada ? 'Caja Destino Entrada' : 'Caja Destino'}</Label>
+
             <Select value={targetCashBoxIn} onValueChange={setTargetCashBoxIn}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar caja..." /></SelectTrigger>
                 <SelectContent>
@@ -151,13 +157,17 @@ const ExecuteOperationModal = ({ operation, onExecute, onCancel }) => {
         )}
         {operation.amountOut > 0 && (
           <div className="space-y-2">
-            <Label>Monto Salida a Ejecutar ({operation.currencyOut}) - Pendiente: {formatNumberForDisplay(remainingOut)}</Label>
+            <Label>
+  {isSalida ? 'Monto Salida a Ejecutar' : 'Monto a Ejecutar'} ({operation.currencyOut}) - Pendiente: {formatNumberForDisplay(remainingOut)}
+</Label>
+
             <FormattedInput 
               value={execAmountOut} 
               onChange={(e) => setExecAmountOut(e.target.value)} 
               placeholder={`Máx. ${formatNumberForDisplay(remainingOut)}`}
             />
-            <Label>Caja Origen Salida</Label>
+            <Label>{isSalida ? 'Caja Origen Salida' : 'Caja Origen'}</Label>
+
              <Select value={targetCashBoxOut} onValueChange={setTargetCashBoxOut}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar caja..." /></SelectTrigger>
                 <SelectContent>
@@ -185,7 +195,12 @@ const ExecuteOperationModal = ({ operation, onExecute, onCancel }) => {
 
 
 const PendingOperationsPage = () => {
-  const { pendingOperations, executeOperation, clients } = useOperations();
+  const { operations, executeOperation, clients } = useOperations();
+
+const pendingOperations = useMemo(() => {
+  return operations.filter(op => op.status === 'pending');
+}, [operations]);
+
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [selectedOperation, setSelectedOperation] = useState(null);
@@ -260,12 +275,12 @@ const PendingOperationsPage = () => {
               <TableBody>
                 {safePendingOps.map(op => (
                   <TableRow key={op.id}>
-                    <TableCell>{new Date(op.timestamp).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell>{new Date(op.createdAt).toLocaleDateString('es-AR')}</TableCell>
                     <TableCell>{operationTypeLabels[op.type] || op.type}</TableCell>
                     <TableCell>{getClientName(op.client)}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{op.description || '-'}</TableCell>
-                    <TableCell>{op.amountIn ? formatCurrency(op.amountIn, op.currencyIn) : '-'}</TableCell>
                     <TableCell>{op.amountOut ? formatCurrency(op.amountOut, op.currencyOut) : '-'}</TableCell>
+                    <TableCell>{op.amountIn ? formatCurrency(op.amountIn, op.currencyIn) : '-'}</TableCell>
                     <TableCell>{formatCurrency(op.executedAmountIn || 0, op.currencyIn)}</TableCell>
                     <TableCell>{formatCurrency(op.executedAmountOut || 0, op.currencyOut)}</TableCell>
                     <TableCell>
